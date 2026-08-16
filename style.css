@@ -1,0 +1,81 @@
+:root {
+    --primary: #800020;
+    --primary-dark: #4a0012;
+    --bg-main: #f0f2f5;
+    --bg-card: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-radius: 8px;
+    --transition: 0.2s ease-in-out;
+}
+
+/* ... resets e layouts básicos mantidos ... */
+
+.hidden { display: none !important; }
+
+.erro-msg {
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 15px;
+    border-radius: var(--border-radius);
+    border-left: 4px solid #b91c1c;
+    margin-top: 20px;
+}
+
+/* --- Estilização do Acordeão (Tree View Legislativa) --- */
+#resultado-artigo {
+    margin-top: 30px;
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    line-height: 1.7;
+}
+
+.caput {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+/* Estilo semântico das tags HTML5 <details> e <summary> */
+details {
+    margin: 10px 0;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+summary {
+    padding: 12px 15px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #f1f5f9;
+    list-style: none; /* Remove seta padrão em alguns browsers */
+    display: flex;
+    align-items: center;
+    transition: background var(--transition);
+}
+
+summary:hover { background: #e2e8f0; }
+
+summary::before {
+    content: '▶';
+    font-size: 0.8em;
+    margin-right: 10px;
+    color: var(--primary);
+    transition: transform var(--transition);
+}
+
+details[open] > summary::before { transform: rotate(90deg); }
+
+.conteudo-no {
+    padding: 15px;
+    border-top: 1px solid #e2e8f0;
+}
+
+/* Indentação visual recursiva */
+details details { margin: 10px 0 0 20px; }
