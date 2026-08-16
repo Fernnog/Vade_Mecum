@@ -1,16 +1,128 @@
+/* style.css */
 :root {
-    --primary: #800020;
+    --primary: #800020; /* Bordô */
     --primary-dark: #4a0012;
     --bg-main: #f0f2f5;
     --bg-card: #ffffff;
     --text-main: #1e293b;
     --text-muted: #64748b;
     --border-radius: 8px;
-    --transition: 0.2s ease-in-out;
+    --transition: 0.3s ease;
 }
 
-/* ... resets e layouts básicos mantidos ... */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    margin: 0;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
 
+/* Cabeçalho */
+header {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+h1 { color: #1a365d; }
+
+.icone-ferramenta {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    color: #a0aec0;
+    transition: transform var(--transition), color var(--transition);
+}
+
+.icone-ferramenta:hover {
+    color: var(--primary);
+    transform: rotate(90deg);
+}
+
+.icone-ferramenta svg {
+    width: 28px;
+    height: 28px;
+    fill: currentColor;
+}
+
+/* Cards de Seleção da Lei */
+.painel-cards {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 40px;
+    max-width: 900px;
+}
+
+.card {
+    background-color: var(--bg-card);
+    border: none;
+    border-top: 5px solid var(--primary);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-main);
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform var(--transition), box-shadow var(--transition);
+    flex: 1 1 140px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    border-top-color: var(--primary-dark);
+}
+
+/* Área de Busca */
+#area-busca {
+    background-color: var(--bg-card);
+    padding: 30px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+}
+
+.input-grupo {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+input[type="text"] {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    width: 200px;
+    outline: none;
+}
+input[type="text"]:focus { border-color: var(--primary); }
+
+button#btn-buscar {
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+button#btn-buscar:hover { background-color: var(--primary-dark); }
+
+/* Utilitários */
 .hidden { display: none !important; }
 
 .erro-msg {
@@ -22,13 +134,15 @@
     margin-top: 20px;
 }
 
-/* --- Estilização do Acordeão (Tree View Legislativa) --- */
+#estado-loading {
+    margin-top: 20px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* --- Estilização do Acordeão (Árvore Legislativa) --- */
 #resultado-artigo {
     margin-top: 30px;
-    background: var(--bg-card);
-    padding: 25px;
-    border-radius: var(--border-radius);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     text-align: left;
     line-height: 1.7;
 }
@@ -40,7 +154,6 @@
     color: var(--primary);
 }
 
-/* Estilo semântico das tags HTML5 <details> e <summary> */
 details {
     margin: 10px 0;
     background: #f8fafc;
@@ -54,12 +167,13 @@ summary {
     font-weight: 500;
     cursor: pointer;
     background: #f1f5f9;
-    list-style: none; /* Remove seta padrão em alguns browsers */
+    list-style: none;
     display: flex;
     align-items: center;
     transition: background var(--transition);
 }
 
+summary::-webkit-details-marker { display: none; }
 summary:hover { background: #e2e8f0; }
 
 summary::before {
@@ -75,7 +189,7 @@ details[open] > summary::before { transform: rotate(90deg); }
 .conteudo-no {
     padding: 15px;
     border-top: 1px solid #e2e8f0;
+    background: var(--bg-card);
 }
 
-/* Indentação visual recursiva */
 details details { margin: 10px 0 0 20px; }
