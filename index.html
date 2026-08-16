@@ -3,68 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Vade Mecum Rápido</title>
-
-    <!-- ÍCONES DA PÁGINA (FAVICON) -->
-    <link rel="icon" type="image/x-icon" href="imagens/favicon.ico">
-    <link rel="icon" type="image/png" sizes="32x32" href="imagens/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="imagens/favicon-16x16.png">
-    <link rel="apple-touch-icon" href="imagens/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="imagens/android-chrome-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="imagens/android-chrome-512x512.png">
-
-    <!-- NOVO ARQUIVO DE ESTILOS (CSS Separado) -->
+    <title>Vade Mecum Inteligente | Arquitetura Moderna</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Merriweather:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header>
-        <!-- ÍCONE DE ENGRENAGEM (Mantido idêntico) -->
-        <a href="conversor.html" target="_blank" class="icone-ferramenta" title="Gerador de Leis JSON" aria-label="Acessar o Gerador de Leis JSON">
-            <svg viewBox="0 0 24 24">
-                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-            </svg>
-        </a>
-
+    <header class="app-header">
         <h1>Meu Vade Mecum</h1>
+        <p class="subtitle">Navegação hierárquica inteligente</p>
     </header>
 
-    <main>
-        <!-- PAINEL DE CARDS -->
-        <!-- O evento 'onclick' acoplado foi removido em favor do uso de 'data-attributes'. -->
-        <section class="painel-cards">
-            <button class="card card-lei" data-sigla="cf" data-nome="Constituição Federal (CF/88)">CF/88</button>
-            <button class="card card-lei" data-sigla="clt" data-nome="Consolidação das Leis do Trabalho">CLT</button>
-            <button class="card card-lei" data-sigla="cpc" data-nome="Código de Processo Civil">Processo Civil</button>
-            <button class="card card-lei" data-sigla="cc" data-nome="Código Civil">Código Civil</button>
-            <button class="card card-lei" data-sigla="cp" data-nome="Código Penal">Código Penal</button>
+    <main class="app-container">
+        <!-- Seletor de Leis -->
+        <section class="painel-cards" role="tablist" aria-label="Selecione a legislação">
+            <button class="card" role="tab" data-lei="cf" data-nome="Constituição Federal (CF/88)">CF/88</button>
+            <button class="card" role="tab" data-lei="clt" data-nome="Consolidação das Leis do Trabalho">CLT</button>
+            <button class="card" role="tab" data-lei="cpc" data-nome="Código de Processo Civil">CPC</button>
+            <button class="card" role="tab" data-lei="cc" data-nome="Código Civil">CC</button>
+            <button class="card" role="tab" data-lei="cp" data-nome="Código Penal">CP</button>
         </section>
 
-        <!-- ÁREA DE BUSCA E RESULTADOS -->
-        <section id="area-busca" aria-hidden="true" style="display: none;">
-            <h2 id="titulo-lei-selecionada">Selecione uma Lei</h2>
-            <p>Digite o número do artigo desejado:</p>
+        <!-- Área de Busca -->
+        <section id="area-busca" class="busca-container" hidden>
+            <h2 id="titulo-lei-selecionada" class="lei-titulo"></h2>
             
             <div class="input-grupo">
-                <!-- Mudança p/ type="text" para permitir o usuário digitar "Art. 5º", sendo higienizado no JS -->
-                <input type="text" id="input-artigo" placeholder="Ex: 5, 5º, Art. 5" aria-label="Pesquisar número do artigo">
-                <button id="btn-buscar">Pesquisar</button>
-            </div>
-
-            <!-- MENSAGENS DE ESTADO (Loading e Erros) -->
-            <div id="estado-loading" class="hidden" role="status" aria-live="polite">
-                <p>Analisando base legal...</p>
+                <label for="numero-artigo" class="sr-only">Digite o número do artigo</label>
+                <input type="text" id="numero-artigo" inputmode="numeric" placeholder="Ex: 5, 5º, Art. 5" autocomplete="off">
+                <button id="btn-buscar" class="btn-primary">Pesquisar</button>
             </div>
             
-            <div id="estado-erro" class="hidden erro-msg" role="alert" aria-live="assertive"></div>
-
-            <!-- ÁREA DA RENDERIZAÇÃO DA ÁRVORE (Caput, Acordeões de Parágrafos e Incisos) -->
-            <article id="resultado-artigo" class="hidden"></article>
+            <!-- Container de Resultados com Acessibilidade -->
+            <div id="resultado-artigo" class="resultado-container" aria-live="polite" aria-busy="false"></div>
         </section>
     </main>
 
-    <!-- ARQUITETURA JS: Importação configurada como Módulo (ES6) -->
-    <script type="module" src="app.js"></script>
+    <!-- Componente Toast para Notificações -->
+    <div id="toast-notificacao" class="toast" role="alert" aria-live="assertive"></div>
 
+    <!-- Carregamento como Módulo ES6 para encapsulamento de escopo -->
+    <script type="module" src="app.js"></script>
 </body>
 </html>
