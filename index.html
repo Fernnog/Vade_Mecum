@@ -13,212 +13,58 @@
     <link rel="icon" type="image/png" sizes="192x192" href="imagens/android-chrome-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="imagens/android-chrome-512x512.png">
 
-    <style>
-        /* ESTILOS VISUAIS (CSS) */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative; 
-        }
-
-        h1 { color: #1a365d; margin-bottom: 30px; text-align: center; }
-
-        /* Ícone de Engrenagem */
-        .icone-ferramenta {
-            position: absolute;
-            top: 20px;
-            right: 25px;
-            color: #a0aec0; 
-            text-decoration: none;
-            transition: transform 0.4s ease, color 0.3s ease;
-        }
-
-        .icone-ferramenta:hover {
-            color: #2b6cb0; 
-            transform: rotate(90deg); 
-        }
-
-        .icone-ferramenta svg {
-            width: 28px;
-            height: 28px;
-            fill: currentColor;
-        }
-
-        /* Estilo dos Cards (Painéis) */
-        .painel-cards {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 40px;
-            max-width: 900px;
-        }
-
-        .card {
-            background-color: white;
-            border-top: 5px solid #800020; /* Atualizado para bordô combinando com o ícone */
-            border-radius: 8px;
-            padding: 20px;
-            font-size: 16px;
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s, box-shadow 0.2s;
-            flex: 1 1 140px; 
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-            border-top-color: #4a0012; /* Bordô mais escuro no hover */
-        }
-
-        /* Estilo da Área de Busca */
-        #area-busca {
-            display: none;
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 800px;
-            text-align: center;
-        }
-
-        .input-grupo {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
-        input[type="number"] {
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            width: 150px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #800020; /* Atualizado para bordô */
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover { background-color: #4a0012; }
-
-        /* Estilo do Resultado (Texto da Lei) */
-        #resultado-artigo {
-            margin-top: 30px;
-            text-align: left;
-            background-color: #f8fafc;
-            padding: 20px;
-            border-left: 4px solid #800020; /* Atualizado para bordô */
-            border-radius: 4px;
-            font-size: 16px;
-            line-height: 1.6;
-            white-space: pre-wrap; 
-            display: none;
-        }
-    </style>
+    <!-- NOVO ARQUIVO DE ESTILOS (CSS Separado) -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <!-- ÍCONE DE ENGRENAGEM -->
-    <a href="conversor.html" target="_blank" class="icone-ferramenta" title="Gerador de Leis JSON">
-        <svg viewBox="0 0 24 24">
-            <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
-        </svg>
-    </a>
+    <header>
+        <!-- ÍCONE DE ENGRENAGEM (Mantido idêntico) -->
+        <a href="conversor.html" target="_blank" class="icone-ferramenta" title="Gerador de Leis JSON" aria-label="Acessar o Gerador de Leis JSON">
+            <svg viewBox="0 0 24 24">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </svg>
+        </a>
 
-    <h1>Meu Vade Mecum</h1>
+        <h1>Meu Vade Mecum</h1>
+    </header>
 
-    <!-- PAINEL DE CARDS -->
-    <div class="painel-cards">
-        <div class="card" onclick="prepararBusca('cf', 'Constituição Federal (CF/88)')">CF/88</div>
-        <div class="card" onclick="prepararBusca('clt', 'Consolidação das Leis do Trabalho')">CLT</div>
-        <div class="card" onclick="prepararBusca('cpc', 'Código de Processo Civil')">Processo Civil</div>
-        <div class="card" onclick="prepararBusca('cc', 'Código Civil')">Código Civil</div>
-        <div class="card" onclick="prepararBusca('cp', 'Código Penal')">Código Penal</div>
-    </div>
+    <main>
+        <!-- PAINEL DE CARDS -->
+        <!-- O evento 'onclick' acoplado foi removido em favor do uso de 'data-attributes'. -->
+        <section class="painel-cards">
+            <button class="card card-lei" data-sigla="cf" data-nome="Constituição Federal (CF/88)">CF/88</button>
+            <button class="card card-lei" data-sigla="clt" data-nome="Consolidação das Leis do Trabalho">CLT</button>
+            <button class="card card-lei" data-sigla="cpc" data-nome="Código de Processo Civil">Processo Civil</button>
+            <button class="card card-lei" data-sigla="cc" data-nome="Código Civil">Código Civil</button>
+            <button class="card card-lei" data-sigla="cp" data-nome="Código Penal">Código Penal</button>
+        </section>
 
-    <!-- ÁREA DE BUSCA -->
-    <div id="area-busca">
-        <h2 id="titulo-lei-selecionada">Selecione uma Lei</h2>
-        <p>Digite apenas o número do artigo:</p>
-        
-        <div class="input-grupo">
-            <input type="number" id="numero-artigo" placeholder="Ex: 5" onkeypress="verificarEnter(event)">
-            <button onclick="buscarArtigo()">Pesquisar</button>
-        </div>
-
-        <div id="resultado-artigo"></div>
-    </div>
-
-    <!-- LÓGICA DE PROGRAMAÇÃO (JAVASCRIPT) -->
-    <script>
-        let arquivoJsonAtual = ''; 
-
-        function prepararBusca(siglaLei, nomeLei) {
-            arquivoJsonAtual = siglaLei + '.json'; 
+        <!-- ÁREA DE BUSCA E RESULTADOS -->
+        <section id="area-busca" aria-hidden="true" style="display: none;">
+            <h2 id="titulo-lei-selecionada">Selecione uma Lei</h2>
+            <p>Digite o número do artigo desejado:</p>
             
-            document.getElementById('titulo-lei-selecionada').innerText = "Buscando em: " + nomeLei;
-            document.getElementById('area-busca').style.display = 'block'; 
-            document.getElementById('resultado-artigo').style.display = 'none'; 
-            document.getElementById('numero-artigo').value = ''; 
-            document.getElementById('numero-artigo').focus(); 
-        }
+            <div class="input-grupo">
+                <!-- Mudança p/ type="text" para permitir o usuário digitar "Art. 5º", sendo higienizado no JS -->
+                <input type="text" id="input-artigo" placeholder="Ex: 5, 5º, Art. 5" aria-label="Pesquisar número do artigo">
+                <button id="btn-buscar">Pesquisar</button>
+            </div>
 
-        function verificarEnter(evento) {
-            if (evento.key === "Enter") {
-                buscarArtigo();
-            }
-        }
+            <!-- MENSAGENS DE ESTADO (Loading e Erros) -->
+            <div id="estado-loading" class="hidden" role="status" aria-live="polite">
+                <p>Analisando base legal...</p>
+            </div>
+            
+            <div id="estado-erro" class="hidden erro-msg" role="alert" aria-live="assertive"></div>
 
-        function buscarArtigo() {
-            const numeroDigitado = document.getElementById('numero-artigo').value;
-            const divResultado = document.getElementById('resultado-artigo');
+            <!-- ÁREA DA RENDERIZAÇÃO DA ÁRVORE (Caput, Acordeões de Parágrafos e Incisos) -->
+            <article id="resultado-artigo" class="hidden"></article>
+        </section>
+    </main>
 
-            if (!numeroDigitado) {
-                alert("Por favor, digite o número de um artigo.");
-                return;
-            }
-
-            divResultado.style.display = 'block';
-            divResultado.innerText = "Carregando...";
-
-            fetch(arquivoJsonAtual)
-                .then(resposta => {
-                    if(!resposta.ok) throw new Error("Arquivo da lei não encontrado.");
-                    return resposta.json();
-                })
-                .then(dados => {
-                    const textoArtigo = dados[numeroDigitado];
-
-                    if (textoArtigo) {
-                        divResultado.innerText = textoArtigo; 
-                    } else {
-                        divResultado.innerText = "Artigo " + numeroDigitado + " não encontrado ou revogado.";
-                    }
-                })
-                .catch(erro => {
-                    divResultado.innerText = "Erro ao buscar: Você já gerou o arquivo " + arquivoJsonAtual + " usando a engrenagem?";
-                    console.error(erro);
-                });
-        }
-    </script>
+    <!-- ARQUITETURA JS: Importação configurada como Módulo (ES6) -->
+    <script type="module" src="app.js"></script>
 
 </body>
 </html>
