@@ -18,21 +18,48 @@ const DOM = {
     inputArtigo: document.getElementById('numero-artigo'),
     btnBuscar: document.getElementById('btn-buscar'),
     resultado: document.getElementById('resultado-artigo'),
-    toast: document.getElementById('toast-notificacao')
+    toast: document.getElementById('toast-notificacao'),
+    resultadoWrapper: document.getElementById('resultado-wrapper'),
+    btnExpandir: document.getElementById('btn-expandir'),
+    btnFechar: document.getElementById('btn-fechar-expansao')
 };
 
 // ==========================================
 // 2. INICIALIZAÇÃO E EVENTOS
 // ==========================================
 function init() {
-    DOM.cards.forEach(card => {
-        card.addEventListener('click', () => selecionarLei(card));
-    });
+    DOM.cards.forEach(card => card.addEventListener('click', () => selecionarLei(card)));
     
     DOM.btnBuscar.addEventListener('click', buscarArtigo);
     DOM.inputArtigo.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') buscarArtigo();
     });
+
+    // Controles de Expansão
+    DOM.btnExpandir.addEventListener('click', toggleExpandir);
+    DOM.btnFechar.addEventListener('click', toggleExpandir);
+
+    // Delegação de Eventos (Event Delegation) no Contêiner Principal
+    DOM.resultado.addEventListener('click', (e) => {
+        // Toggle do Acordeão
+        const btnAcordeao = e.target.closest('.accordion-trigger');
+        if (btnAcordeao) {
+            const estaExpandido = btnAcordeao.getAttribute('aria-expanded') === 'true';
+            btnAcordeao.setAttribute('aria-expanded', !estaExpandido);
+            btnAcordeao.nextElementSibling.classList.toggle('active');
+            return;
+        }
+
+        // Aplicação do Filtro
+        if (e.target.matches('.btn-filtrar')) {
+            aplicarFiltroInteligente(e.target);
+        }
+    });
+}
+
+function toggleExpandir() {
+    const isExpanded = document.body.classList.toggle('modo-expandido-ativo');
+    DOM.btnExpandir.setAttribute('aria-pressed', isExpanded);
 }
 
 // ==========================================
@@ -89,8 +116,8 @@ async function buscarArtigo() {
     DOM.resultado.innerHTML = '';
 
     try {
-        // Nota: Fetch requer servidor local (Live Server) devido a CORS
-        const response = await fetch(`${state.leiAtual}.json`);
+        // Diretório '/dados/' evita problemas de 404 e limpa a arquitetura local
+        const response = await fetch(`./dados/${state.leiAtual}.json`);
         if (!response.ok) throw new Error('Falha ao carregar o arquivo da lei.');
         
         const dados = await response.json();
@@ -105,6 +132,7 @@ async function buscarArtigo() {
         // O Coração da Inteligência
         const arvoreJuridica = parsearTextoLegal(textoCru);
         renderizarArvore(arvoreJuridica);
+        if (DOM.btnExpandir) DOM.btnExpandir.hidden = false;
         
         if (arvoreJuridica.children.length > 0) {
             mostrarToast('Estrutura hierárquica identificada! Use os botões para expandir.', 'success');
@@ -185,9 +213,21 @@ function renderizarArvore(node, level = 0) {
     DOM.resultado.appendChild(criarNoDOM(node, level));
 }
 
-function criarNoDOM(node, level) {
+function extrairIDBruto(texto, tipo) {
+    if (tipo === 'inciso') return texto.match(/^([IVXLCDM]+)/i)?.[1] || '';
+    if (tipo === 'alinea') return texto.match(/^([a-z])/i)?.[1] || '';
+    if (tipo === 'item') return texto.match(/^(\d+)/)?.[1] || '';
+    return '';
+}
+
+function criarNoDOM(node, level, index = 0) {
     const divNo = document.createElement('div');
     divNo.className = `legal-node level-${level}`;
+    
+    // Injeção de estado no DOM para busca posterior do filtro
+    const rawId = extrairIDBruto(node.text, node.type).toLowerCase();
+    divNo.dataset.index = index;
+    divNo.dataset.rawid = rawId;
 
     // Texto do Nó
     const divTexto = document.createElement('div');
@@ -207,26 +247,62 @@ function criarNoDOM(node, level) {
         
         const divInterna = document.createElement('div');
         divInterna.className = 'inner-wrapper';
-        
-        // Renderiza filhos recursivamente
-        node.children.forEach(filho => {
-            divInterna.appendChild(criarNoDOM(filho, level + 1));
+
+        // Filtro visual estrutural injetado no DOM (Gatilho tratado pelo Event Delegation)
+        if (node.children.length > 10) {
+            const idStart = extrairIDBruto(node.children[0].text, node.children[0].type);
+            const idEnd = extrairIDBruto(node.children[node.children.length - 1].text, node.children[node.children.length - 1].type);
+
+            divConteudo.insertAdjacentHTML('afterbegin', `
+                <div class="filtro-inteligente">
+                    <label for="filtro-start-${index}" class="sr-only">Início do intervalo</label>
+                    <input id="filtro-start-${index}" type="text" class="input-filtro start" value="${idStart}">
+                    <span>até</span>
+                    <label for="filtro-end-${index}" class="sr-only">Fim do intervalo</label>
+                    <input id="filtro-end-${index}" type="text" class="input-filtro end" value="${idEnd}">
+                    <button class="btn-filtrar" type="button">Aplicar Filtro</button>
+                </div>
+            `);
+        }
+
+        // Renderiza filhos recursivamente repassando o index
+        node.children.forEach((filho, idx) => {
+            divInterna.appendChild(criarNoDOM(filho, level + 1, idx));
         });
 
         divConteudo.appendChild(divInterna);
-
-        // Evento de Toggle
-        btn.addEventListener('click', () => {
-            const estaExpandido = btn.getAttribute('aria-expanded') === 'true';
-            btn.setAttribute('aria-expanded', !estaExpandido);
-            divConteudo.classList.toggle('active');
-        });
-
-        divNo.appendChild(btn);
-        divNo.appendChild(divConteudo);
+        divNo.append(btn, divConteudo);
     }
 
     return divNo;
+}
+
+function aplicarFiltroInteligente(btnElement) {
+    const container = btnElement.closest('.accordion-content');
+    const startVal = container.querySelector('.start').value.trim().toLowerCase();
+    const endVal = container.querySelector('.end').value.trim().toLowerCase();
+    const wrapper = container.querySelector('.inner-wrapper');
+    const nodes = Array.from(wrapper.querySelectorAll(':scope > .legal-node'));
+    
+    let indexStart = 0, indexEnd = nodes.length - 1;
+
+    // Busca de O(N) simples através de atributos memoizados
+    nodes.forEach((node) => {
+        if (node.dataset.rawid === startVal) indexStart = parseInt(node.dataset.index);
+        if (node.dataset.rawid === endVal) indexEnd = parseInt(node.dataset.index);
+    });
+
+    if (indexStart > indexEnd) [indexStart, indexEnd] = [indexEnd, indexStart];
+
+    // Manipulação segura de classes (Sem mutar style inline)
+    nodes.forEach(node => {
+        const idx = parseInt(node.dataset.index);
+        if (idx >= indexStart && idx <= indexEnd) {
+            node.classList.remove('is-hidden');
+        } else {
+            node.classList.add('is-hidden');
+        }
+    });
 }
 
 function getLabelFilhos(tipoPai) {

@@ -26,11 +26,26 @@
     <main class="app-container">
         <!-- Seletor de Leis -->
         <section class="painel-cards" role="tablist" aria-label="Selecione a legislação">
-            <button class="card" role="tab" data-lei="cf" data-nome="Constituição Federal (CF/88)">CF/88</button>
-            <button class="card" role="tab" data-lei="clt" data-nome="Consolidação das Leis do Trabalho">CLT</button>
-            <button class="card" role="tab" data-lei="cpc" data-nome="Código de Processo Civil">CPC</button>
-            <button class="card" role="tab" data-lei="cc" data-nome="Código Civil">CC</button>
-            <button class="card" role="tab" data-lei="cp" data-nome="Código Penal">CP</button>
+            <button class="card" role="tab" data-lei="cf" data-nome="Constituição Federal (CF/88)">
+                <span class="card-title">CF/88</span>
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
+            <button class="card" role="tab" data-lei="clt" data-nome="Consolidação das Leis do Trabalho">
+                <span class="card-title">CLT</span>
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
+            <button class="card" role="tab" data-lei="cpc" data-nome="Código de Processo Civil">
+                <span class="card-title">CPC</span>
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
+            <button class="card" role="tab" data-lei="cc" data-nome="Código Civil">
+                <span class="card-title">CC</span>
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
+            <button class="card" role="tab" data-lei="cp" data-nome="Código Penal">
+                <span class="card-title">CP</span>
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </button>
         </section>
 
         <!-- Área de Busca -->
@@ -43,8 +58,18 @@
                 <button id="btn-buscar" class="btn-primary">Pesquisar</button>
             </div>
             
-            <!-- Container de Resultados com Acessibilidade -->
-            <div id="resultado-artigo" class="resultado-container" aria-live="polite" aria-busy="false"></div>
+            <!-- Container de Resultados com Acessibilidade e Wrapper de Expansão -->
+            <div id="resultado-wrapper" class="resultado-wrapper">
+                <div class="resultado-controles">
+                    <button id="btn-expandir" class="btn-icon" aria-label="Expandir para tela cheia" aria-pressed="false" hidden>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                    </button>
+                    <button id="btn-fechar-expansao" class="btn-icon danger" aria-label="Fechar tela cheia" hidden>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                <div id="resultado-artigo" class="resultado-container" aria-live="polite" aria-busy="false"></div>
+            </div>
         </section>
     </main>
 
