@@ -2,18 +2,18 @@
    1. VARIÁVEIS E RESET
    ========================================= */
 :root {
-    --primary: #1e3a8a;      /* Azul jurídico profundo */
-    --primary-light: #3b82f6;
-    --bg-body: #f8fafc;
+    --primary: #800020;      /* Bordô sofisticado */
+    --primary-light: #9e1b3d;
+    --bg-body: #fdfcfc;
     --bg-card: #ffffff;
-    --text-main: #0f172a;
+    --text-main: #1e293b;
     --text-muted: #64748b;
-    --border: #e2e8f0;
+    --border: #e5dada;       /* Harmonizado com o tom quente */
     --success: #10b981;
     --error: #ef4444;
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --radius: 8px;
+    --shadow-sm: 0 2px 4px rgba(128, 0, 32, 0.05);
+    --shadow-md: 0 10px 15px -3px rgba(128, 0, 32, 0.1), 0 4px 6px -4px rgba(128, 0, 32, 0.05);
+    --radius: 12px;
     --font-ui: 'Inter', system-ui, sans-serif;
     --font-legal: 'Merriweather', Georgia, serif;
 }
@@ -40,49 +40,78 @@ body {
 /* =========================================
    2. HEADER E CARDS DE LEIS
    ========================================= */
+.config-btn {
+    position: absolute; /* Remove do fluxo padrão do cabeçalho */
+    top: 1.5rem;
+    right: 1.5rem;
+    color: var(--text-muted);
+    transition: color 0.2s ease, transform 0.2s ease;
+    z-index: 100;
+}
+.config-btn:hover {
+    color: var(--primary);
+    transform: rotate(45deg);
+}
+
 .app-header { text-align: center; margin-bottom: 2.5rem; }
 .app-header h1 { font-size: 2rem; color: var(--primary); font-weight: 600; }
 .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
 
 .painel-cards {
-    display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
-    margin-bottom: 2rem; max-width: 800px; width: 100%;
+    display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: center;
+    margin-bottom: 2.5rem; max-width: 900px; width: 100%;
 }
 
 .card {
     position: relative;
+    display: flex;
+    flex-direction: column; /* Coloca ícone acima do texto */
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 120px;        /* Fluidez: cresce ou encolhe, mínimo 120px */
+    max-width: 150px;       /* Limite de crescimento em Desktop */
+    min-height: 160px;      /* Garante a proporção vertical (Livro) */
     background: var(--bg-card); 
-    border: 2px solid var(--border);
-    padding: 1.25rem 2rem 1.25rem 1.5rem; 
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    font-weight: 500; font-size: 1rem; color: var(--text-main);
+    font-weight: 600; font-size: 1.15rem; color: var(--text-main);
     cursor: pointer; 
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-    box-shadow: 0 4px 0 var(--border), 0 8px 15px rgba(0, 0, 0, 0.05);
-    transform: translateY(0);
-    overflow: hidden;
+    /* Hardware acceleration properties apenas */
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+    box-shadow: var(--shadow-sm);
     font-family: var(--font-ui);
 }
 
 .card .card-icon {
-    position: absolute; right: -5px; top: -5px;
-    width: 40px; height: 40px; opacity: 0.1;
-    transition: all 0.3s;
+    position: relative; /* Volta para o fluxo flexbox centralizado */
+    width: 44px; height: 44px; 
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+    opacity: 0.2;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .card:hover, .card:focus-visible {
-    border-color: var(--primary-light); color: var(--primary); outline: none;
-    transform: translateY(-4px);
-    box-shadow: 0 8px 0 var(--primary-light), 0 12px 20px rgba(30, 58, 138, 0.15);
+    border-color: var(--primary-light); 
+    color: var(--primary); 
+    outline: none;
+    transform: translateY(-6px); /* Elevação 3D limpa */
+    box-shadow: var(--shadow-md);
 }
 
 .card.active {
-    background-color: var(--primary); color: white; border-color: var(--primary);
-    transform: translateY(2px);
-    box-shadow: 0 2px 0 #1e3a8a, 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--primary); 
+    color: white; 
+    border-color: var(--primary);
+    transform: translateY(-2px); /* Sensação de afundamento parcial em relação ao hover */
+    box-shadow: 0 4px 6px rgba(128, 0, 32, 0.3);
 }
 
-.card.active .card-icon { opacity: 0.3; transform: scale(1.1); color: white; }
+.card.active .card-icon { 
+    opacity: 1; 
+    color: white; 
+    transform: scale(1.1); 
+}
 
 /* =========================================
    3. BUSCA E INPUTS

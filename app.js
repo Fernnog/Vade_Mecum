@@ -104,7 +104,7 @@ function setLoading(isLoading) {
 async function buscarArtigo() {
     const inputCru = DOM.inputArtigo.value;
     
-    // Sanitização Inteligente: Extrai apenas números de "5º", "Art 5", etc.
+    // Sanitização Inteligente: Extrai apenas números
     const numeroLimpo = inputCru.replace(/\D/g, '');
     
     if (!numeroLimpo) {
@@ -116,8 +116,10 @@ async function buscarArtigo() {
     DOM.resultado.innerHTML = '';
 
     try {
-        // Diretório '/dados/' evita problemas de 404 e limpa a arquitetura local
-        const response = await fetch(`./dados/${state.leiAtual}.json`);
+        // CORREÇÃO CRÍTICA: Caminho relativo direto (sem '/dados/').
+        // Alinhado com a arquitetura local descrita no README.md
+        const response = await fetch(`./${state.leiAtual}.json`);
+        
         if (!response.ok) throw new Error('Falha ao carregar o arquivo da lei.');
         
         const dados = await response.json();
@@ -140,8 +142,8 @@ async function buscarArtigo() {
 
     } catch (error) {
         console.error(error);
-        mostrarToast('Erro ao buscar o artigo. Verifique sua conexão ou o arquivo JSON.', 'error');
-        DOM.resultado.innerHTML = '<p style="color: red; text-align: center;">Ocorreu um erro ao processar sua busca.</p>';
+        mostrarToast('Erro ao buscar o artigo. Verifique o arquivo JSON.', 'error');
+        DOM.resultado.innerHTML = '<p style="color: red; text-align: center;">Ocorreu um erro de conexão.</p>';
     } finally {
         setLoading(false);
     }
