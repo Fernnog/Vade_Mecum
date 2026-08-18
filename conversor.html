@@ -6,7 +6,10 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 30px; background: #f4f4f9; color: #333; max-width: 800px; margin: 0 auto; }
         h2 { color: #1a365d; }
-        textarea { width: 100%; height: 250px; margin-bottom: 15px; padding: 15px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .editor-rico { width: 100%; height: 250px; margin-bottom: 15px; padding: 15px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; overflow-y: auto; background: #fff; }
+        .editor-rico:empty:before { content: attr(data-placeholder); color: #888; }
+        /* Destaque visual: mostra pro usuário o que será ignorado pelo aspirador de pó */
+        strike, s, del { color: #a0aec0; text-decoration: line-through; background: #fed7d7; }
         .botoes-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
         button { padding: 10px 20px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
         button:hover { background: #1a365d; }
@@ -25,7 +28,8 @@
     <h2>Conversor do Planalto para JSON</h2>
     <p>Cole o texto completo da lei (Copiado do site do Planalto) abaixo:</p>
     
-    <textarea id="textoLei" placeholder="Cole o texto da lei aqui..."></textarea>
+    <!-- contenteditable="true" permite colar o HTML preservando as formatações originais do Planalto -->
+    <div id="textoLei" class="editor-rico" contenteditable="true" data-placeholder="Cole a página inteira do Planalto aqui (Ctrl+V)..."></div>
     
     <div class="botoes-container">
         <button onclick="converter()">1. Gerar Estrutura JSON</button>
@@ -48,15 +52,38 @@
         let jsonFinal = ""; // Variável global para guardar o resultado
 
         function converter() {
-            const texto = document.getElementById('textoLei').value;
-            const linhas = texto.split('\n');
-            let jsonLeis = {};
-            let artigoAtual = null;
-
-            if(!texto.trim()) {
+            const divEditor = document.getElementById('textoLei');
+            
+            if(!divEditor.innerText.trim()) {
                 alert("Por favor, cole algum texto antes de gerar.");
                 return;
             }
+
+            // 1. CLONAR O DOM: Criamos uma cópia na memória para não destruir a tela visual do usuário
+            const cloneDom = document.createElement('div');
+            cloneDom.innerHTML = divEditor.innerHTML;
+
+            // 2. O "ASPIRADOR DE PÓ" DE REVOGAÇÕES
+            // Remove fisicamente qualquer tag de texto taxado/riscado copiada do Planalto
+            const tagsRevogadas = cloneDom.querySelectorAll('strike, s, del');
+            tagsRevogadas.forEach(tag => tag.remove());
+
+            // 3. EXTRAÇÃO DE TEXTO LIMPO
+            // O innerText automaticamente converte o HTML restante em texto respeitando as quebras de linha
+            let textoLimpo = cloneDom.innerText;
+
+            // 4. FAXINA DE POLUIÇÃO VISUAL (Regex)
+            // Remove links textuais irrelevantes como "(Redação dada pela Medida Provisória tal)"
+            textoLimpo = textoLimpo.replace(/\((Redação dada|Incluído|Revogado|Vide).*?\)/gi, '');
+            // Remove avisos comuns do Planalto que poluem a leitura
+            textoLimpo = textoLimpo.replace(/Vigência encerrada/gi, ''); 
+            // Limpa espaços duplos excessivos gerados pelas exclusões
+            textoLimpo = textoLimpo.replace(/[ \t]{2,}/g, ' '); 
+
+            // 5. PARSER JSON HIERÁRQUICO
+            const linhas = textoLimpo.split('\n');
+            let jsonLeis = {};
+            let artigoAtual = null;
 
             for(let linha of linhas) {
                 linha = linha.trim();
@@ -69,16 +96,14 @@
                     artigoAtual = ehNovoArtigo[1]; // Ex: "5"
                     jsonLeis[artigoAtual] = linha;
                 } else if (artigoAtual) {
-                    // Adiciona as quebras de linha para manter incisos e parágrafos estruturados
                     jsonLeis[artigoAtual] += '\n' + linha;
                 }
             }
 
-            // Transforma o objeto num texto JSON formatado
+            // Finalização
             jsonFinal = JSON.stringify(jsonLeis, null, 2);
             document.getElementById('resultado').innerText = jsonFinal;
             
-            // Mostra a área de download
             document.getElementById('area-download').style.display = 'block';
             document.getElementById('nome-arquivo').focus();
         }
