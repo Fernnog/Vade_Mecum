@@ -139,6 +139,11 @@ async function buscarArtigo() {
         
         if (DOM.btnExpandir) DOM.btnExpandir.hidden = false;
         
+        // NOVO: Forçar a expansão automática do painel após uma pesquisa bem-sucedida
+        if (!document.body.classList.contains('modo-expandido-ativo')) {
+            toggleExpandir();
+        }
+        
         // 4. Post-Render Scroll Hook
         focarElementoDestino(tokensCaminho.length > 1);
 
