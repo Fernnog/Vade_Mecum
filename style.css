@@ -217,3 +217,16 @@ body {
 
 .filtro-inteligente { display: flex; gap: 0.5rem; align-items: center; background: #f1f5f9; padding: 0.75rem; border-radius: var(--radius); border: 1px solid var(--border); margin: 0.5rem 0; flex-wrap: wrap; }
 .input-filtro { width: 60px; padding: 0.4rem; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; }
+
+/* =========================================
+   7. DEEP LINKING (ANIMAÇÕES)
+   ========================================= */
+@keyframes flash-highlight {
+    0% { background-color: rgba(16, 185, 129, 0.15); box-shadow: inset 4px 0 0 var(--success); }
+    100% { background-color: transparent; box-shadow: inset 0px 0 0 transparent; }
+}
+
+.highlight-node {
+    animation: flash-highlight 2.5s ease-out forwards;
+    border-radius: var(--radius);
+}

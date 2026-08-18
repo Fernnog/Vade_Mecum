@@ -102,10 +102,12 @@ function setLoading(isLoading) {
 // 4. SANITIZAÇÃO E BUSCA (FETCH)
 // ==========================================
 async function buscarArtigo() {
-    const inputCru = DOM.inputArtigo.value;
+    const inputCru = DOM.inputArtigo.value.trim();
     
-    // Sanitização Inteligente: Extrai apenas números
-    const numeroLimpo = inputCru.replace(/\D/g, '');
+    // 1. Lexical Tokenization
+    // Transforma "5, § 2º, III, a)" em array direcional: ['5', '2', 'iii', 'a']
+    const tokensCaminho = tokenizarEntradaJuridica(inputCru);
+    const numeroLimpo = tokensCaminho[0]; // O primeiro item é sempre o Artigo
     
     if (!numeroLimpo) {
         mostrarToast('Por favor, digite o número do artigo.', 'error');
@@ -116,11 +118,7 @@ async function buscarArtigo() {
     DOM.resultado.innerHTML = '';
 
     try {
-        // Correção de Rota: Apontando para o subdiretório correto.
-        // Nota: Certifique-se de que seus arquivos .json (como cf.json) 
-        // estão salvos dentro de uma pasta chamada "dados" no seu projeto.
         const response = await fetch(`./dados/${state.leiAtual}.json`);
-        
         if (!response.ok) throw new Error('Falha ao carregar o arquivo da lei.');
         
         const dados = await response.json();
@@ -128,18 +126,21 @@ async function buscarArtigo() {
 
         if (!textoCru) {
             mostrarToast(`Artigo ${numeroLimpo} não encontrado nesta lei.`, 'error');
-            setLoading(false);
             return;
         }
 
-        // O Coração da Inteligência
+        // 2. AST Generation
         const arvoreJuridica = parsearTextoLegal(textoCru);
-        renderizarArvore(arvoreJuridica);
+        
+        // 3. Target-Aware Rendering (Passamos os tokens do caminho - pulando o [0] que é a raiz)
+        const tokensRamificacao = tokensCaminho.slice(1);
+        DOM.resultado.innerHTML = '';
+        DOM.resultado.appendChild(criarNoDOM(arvoreJuridica, 0, 0, tokensRamificacao));
+        
         if (DOM.btnExpandir) DOM.btnExpandir.hidden = false;
         
-        if (arvoreJuridica.children.length > 0) {
-            mostrarToast('Estrutura hierárquica identificada! Use os botões para expandir.', 'success');
-        }
+        // 4. Post-Render Scroll Hook
+        focarElementoDestino(tokensCaminho.length > 1);
 
     } catch (error) {
         console.error(error);
@@ -148,6 +149,19 @@ async function buscarArtigo() {
     } finally {
         setLoading(false);
     }
+}
+
+// NOVA FUNÇÃO: Tokenizer Jurídico Seguro
+function tokenizarEntradaJuridica(input) {
+    // Removemos caracteres especiais comuns, preservando letras e números
+    // Transforma para minúsculo para facilitar o match de rawid
+    const limpo = input.toLowerCase()
+        .replace(/art\.?|§|º|ª|parágrafo|único|inciso|alínea|item/g, ' ')
+        .replace(/[(),.-]/g, ' ')
+        .trim();
+    
+    // Divide por 1 ou mais espaços e retorna os tokens válidos
+    return limpo.split(/\s+/).filter(t => t.length > 0);
 }
 
 // ==========================================
@@ -223,35 +237,41 @@ function extrairIDBruto(texto, tipo) {
     return '';
 }
 
-function criarNoDOM(node, level, index = 0) {
+// ATUALIZAÇÃO ARQUITETURAL NA RENDERIZAÇÃO: Target-Aware DOM Builder
+function criarNoDOM(node, level, index = 0, tokensBusca = []) {
     const divNo = document.createElement('div');
-    divNo.className = `legal-node level-${level}`;
-    
-    // Injeção de estado no DOM para busca posterior do filtro
     const rawId = extrairIDBruto(node.text, node.type).toLowerCase();
+    
+    // Validação de Destino (O Nó atual bate com o próximo token do caminho?)
+    const isTargetBranch = tokensBusca.length > 0 && rawId === tokensBusca[0];
+    const isFinalDestination = isTargetBranch && tokensBusca.length === 1;
+    
+    // Se for o destino final, marcamos com classe para o Scroll Post-Render
+    divNo.className = `legal-node level-${level} ${isFinalDestination ? 'highlight-node' : ''}`;
     divNo.dataset.index = index;
     divNo.dataset.rawid = rawId;
 
-    // Texto do Nó
     const divTexto = document.createElement('div');
     divTexto.className = `node-text type-${node.type}`;
     divTexto.textContent = node.text;
     divNo.appendChild(divTexto);
 
-    // Se tiver filhos, cria o Acordeão
     if (node.children && node.children.length > 0) {
+        // Se este nó faz parte do caminho procurado, o acordeão NASCE aberto
+        const deveExpandir = isTargetBranch; 
+        
         const btn = document.createElement('button');
         btn.className = 'accordion-trigger';
-        btn.setAttribute('aria-expanded', 'false');
+        btn.setAttribute('aria-expanded', deveExpandir ? 'true' : 'false');
         btn.innerHTML = `Ver ${node.children.length} ${getLabelFilhos(node.type)} <span class="icon">▼</span>`;
 
         const divConteudo = document.createElement('div');
-        divConteudo.className = 'accordion-content';
+        divConteudo.className = `accordion-content ${deveExpandir ? 'active' : ''}`;
         
         const divInterna = document.createElement('div');
         divInterna.className = 'inner-wrapper';
 
-        // Filtro visual estrutural injetado no DOM (Gatilho tratado pelo Event Delegation)
+        // Filtro Inteligente Mantido
         if (node.children.length > 10) {
             const idStart = extrairIDBruto(node.children[0].text, node.children[0].type);
             const idEnd = extrairIDBruto(node.children[node.children.length - 1].text, node.children[node.children.length - 1].type);
@@ -268,15 +288,17 @@ function criarNoDOM(node, level, index = 0) {
             `);
         }
 
-        // Renderiza filhos recursivamente repassando o index
+        // Avançamos o ponteiro dos tokens (remove o atual) se estivermos no caminho certo
+        const proximosTokens = isTargetBranch ? tokensBusca.slice(1) : [];
+
+        // Renderiza filhos recursivamente repassando os tokens de busca atualizados
         node.children.forEach((filho, idx) => {
-            divInterna.appendChild(criarNoDOM(filho, level + 1, idx));
+            divInterna.appendChild(criarNoDOM(filho, level + 1, idx, proximosTokens));
         });
 
         divConteudo.appendChild(divInterna);
         divNo.append(btn, divConteudo);
     }
-
     return divNo;
 }
 
@@ -304,6 +326,23 @@ function aplicarFiltroInteligente(btnElement) {
             node.classList.remove('is-hidden');
         } else {
             node.classList.add('is-hidden');
+        }
+    });
+}
+
+// NOVA FUNÇÃO: Pós-processamento de Viewport
+function focarElementoDestino(teveNavegacaoProfunda) {
+    if (!teveNavegacaoProfunda) return; // Se procurou só o Artigo, não precisa focar subitem
+    
+    // requestAnimationFrame garante que o navegador já pintou o DOM e calculou alturas do Acordeão
+    requestAnimationFrame(() => {
+        const destinoFinal = document.querySelector('.highlight-node');
+        if (destinoFinal) {
+            destinoFinal.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            mostrarToast('Destino localizado!', 'success');
+        } else {
+            // Fallback seguro caso o usuário digite um caminho que não existe na lei
+            mostrarToast('Subitem não encontrado no texto deste artigo.', 'error');
         }
     });
 }
