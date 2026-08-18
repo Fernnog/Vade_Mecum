@@ -153,14 +153,11 @@ async function buscarArtigo() {
 
 // NOVA FUNÇÃO: Tokenizer Jurídico Seguro
 function tokenizarEntradaJuridica(input) {
-    // Removemos caracteres especiais comuns, preservando letras e números
-    // Transforma para minúsculo para facilitar o match de rawid
     const limpo = input.toLowerCase()
-        .replace(/art\.?|§|º|ª|parágrafo|único|inciso|alínea|item/g, ' ')
+        .replace(/art\.?|§|º|ª|parágrafo|inciso|alínea|item/g, ' ')
         .replace(/[(),.-]/g, ' ')
         .trim();
     
-    // Divide por 1 ou mais espaços e retorna os tokens válidos
     return limpo.split(/\s+/).filter(t => t.length > 0);
 }
 
@@ -231,9 +228,15 @@ function renderizarArvore(node, level = 0) {
 }
 
 function extrairIDBruto(texto, tipo) {
-    if (tipo === 'inciso') return texto.match(/^([IVXLCDM]+)/i)?.[1] || '';
-    if (tipo === 'alinea') return texto.match(/^([a-z])/i)?.[1] || '';
-    if (tipo === 'item') return texto.match(/^(\d+)/)?.[1] || '';
+    if (tipo === 'inciso') return texto.match(/^\s*([IVXLCDM]+)/i)?.[1] || '';
+    if (tipo === 'alinea') return texto.match(/^\s*([a-z])/i)?.[1] || '';
+    if (tipo === 'item') return texto.match(/^\s*(\d+)/)?.[1] || '';
+    
+    if (tipo === 'paragrafo') {
+        const numParagrafo = texto.match(/§\s*(\d+)/)?.[1];
+        if (numParagrafo) return numParagrafo;
+        if (/parágrafo\s+único/i.test(texto)) return 'unico';
+    }
     return '';
 }
 
@@ -242,11 +245,19 @@ function criarNoDOM(node, level, index = 0, tokensBusca = []) {
     const divNo = document.createElement('div');
     const rawId = extrairIDBruto(node.text, node.type).toLowerCase();
     
-    // Validação de Destino (O Nó atual bate com o próximo token do caminho?)
-    const isTargetBranch = tokensBusca.length > 0 && rawId === tokensBusca[0];
-    const isFinalDestination = isTargetBranch && tokensBusca.length === 1;
+    let isTargetBranch = false;
+    let proximosTokens = [];
+
+    if (node.type === 'artigo') {
+        isTargetBranch = tokensBusca.length > 0;
+        proximosTokens = tokensBusca; 
+    } else {
+        isTargetBranch = tokensBusca.length > 0 && rawId === tokensBusca[0];
+        proximosTokens = isTargetBranch ? tokensBusca.slice(1) : [];
+    }
+
+    const isFinalDestination = node.type !== 'artigo' && isTargetBranch && tokensBusca.length === 1;
     
-    // Se for o destino final, marcamos com classe para o Scroll Post-Render
     divNo.className = `legal-node level-${level} ${isFinalDestination ? 'highlight-node' : ''}`;
     divNo.dataset.index = index;
     divNo.dataset.rawid = rawId;
@@ -257,21 +268,17 @@ function criarNoDOM(node, level, index = 0, tokensBusca = []) {
     divNo.appendChild(divTexto);
 
     if (node.children && node.children.length > 0) {
-        // Se este nó faz parte do caminho procurado, o acordeão NASCE aberto
-        const deveExpandir = isTargetBranch; 
-        
         const btn = document.createElement('button');
         btn.className = 'accordion-trigger';
-        btn.setAttribute('aria-expanded', deveExpandir ? 'true' : 'false');
+        btn.setAttribute('aria-expanded', isTargetBranch ? 'true' : 'false');
         btn.innerHTML = `Ver ${node.children.length} ${getLabelFilhos(node.type)} <span class="icon">▼</span>`;
 
         const divConteudo = document.createElement('div');
-        divConteudo.className = `accordion-content ${deveExpandir ? 'active' : ''}`;
+        divConteudo.className = `accordion-content ${isTargetBranch ? 'active' : ''}`;
         
         const divInterna = document.createElement('div');
         divInterna.className = 'inner-wrapper';
 
-        // Filtro Inteligente Mantido
         if (node.children.length > 10) {
             const idStart = extrairIDBruto(node.children[0].text, node.children[0].type);
             const idEnd = extrairIDBruto(node.children[node.children.length - 1].text, node.children[node.children.length - 1].type);
@@ -288,10 +295,6 @@ function criarNoDOM(node, level, index = 0, tokensBusca = []) {
             `);
         }
 
-        // Avançamos o ponteiro dos tokens (remove o atual) se estivermos no caminho certo
-        const proximosTokens = isTargetBranch ? tokensBusca.slice(1) : [];
-
-        // Renderiza filhos recursivamente repassando os tokens de busca atualizados
         node.children.forEach((filho, idx) => {
             divInterna.appendChild(criarNoDOM(filho, level + 1, idx, proximosTokens));
         });
