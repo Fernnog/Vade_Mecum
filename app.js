@@ -116,9 +116,10 @@ async function buscarArtigo() {
     DOM.resultado.innerHTML = '';
 
     try {
-        // CORREÇÃO CRÍTICA: Caminho relativo direto (sem '/dados/').
-        // Alinhado com a arquitetura local descrita no README.md
-        const response = await fetch(`./${state.leiAtual}.json`);
+        // Correção de Rota: Apontando para o subdiretório correto.
+        // Nota: Certifique-se de que seus arquivos .json (como cf.json) 
+        // estão salvos dentro de uma pasta chamada "dados" no seu projeto.
+        const response = await fetch(`./dados/${state.leiAtual}.json`);
         
         if (!response.ok) throw new Error('Falha ao carregar o arquivo da lei.');
         
