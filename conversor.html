@@ -9,7 +9,16 @@
         .editor-rico { width: 100%; height: 250px; margin-bottom: 15px; padding: 15px; font-family: monospace; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; overflow-y: auto; background: #fff; }
         .editor-rico:empty:before { content: attr(data-placeholder); color: #888; }
         /* Destaque visual: mostra pro usuário o que será ignorado pelo aspirador de pó */
-        strike, s, del { color: #a0aec0; text-decoration: line-through; background: #fed7d7; }
+        strike, s, del, [style*="line-through"], [style*="LINE-THROUGH"] { color: #a0aec0; text-decoration: line-through; background: #fed7d7; }
+        
+        /* Classes de Feedback */
+        .feedback-sucesso {
+            padding: 12px; margin-bottom: 20px; border-radius: 6px;
+            background: #e6ffed; border: 1px solid #34d058; color: #1a7f37;
+            font-size: 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .is-hidden { display: none !important; }
+
         .botoes-container { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; }
         button { padding: 10px 20px; background: #2b6cb0; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
         button:hover { background: #1a365d; }
@@ -33,6 +42,11 @@
     
     <div class="botoes-container">
         <button onclick="converter()">1. Gerar Estrutura JSON</button>
+    </div>
+
+    <!-- Feedback Refatorado via Classe CSS -->
+    <div id="feedback-limpeza" class="feedback-sucesso is-hidden">
+        <strong>Limpeza Concluída:</strong> <span id="qtd-removida">0</span> nós (tachados e notas) foram podados.
     </div>
 
     <!-- Área de Download que só aparece após converter -->
@@ -59,52 +73,75 @@
                 return;
             }
 
-            // 1. CLONAR O DOM: Criamos uma cópia na memória para não destruir a tela visual do usuário
-            const cloneDom = document.createElement('div');
-            cloneDom.innerHTML = divEditor.innerHTML;
+            // 1. Clonagem e Anexação Oculta (Resolve C2 - Preservação de Quebras de Linha)
+            const hiddenSandbox = document.createElement('div');
+            hiddenSandbox.style.cssText = 'position: absolute; left: -9999px; visibility: hidden; width: 800px;';
+            hiddenSandbox.innerHTML = divEditor.innerHTML;
+            document.body.appendChild(hiddenSandbox);
 
-            // 2. O "ASPIRADOR DE PÓ" DE REVOGAÇÕES
-            // Remove fisicamente qualquer tag de texto taxado/riscado copiada do Planalto
-            const tagsRevogadas = cloneDom.querySelectorAll('strike, s, del');
-            tagsRevogadas.forEach(tag => tag.remove());
+            let nodesRemovidos = 0;
 
-            // 3. EXTRAÇÃO DE TEXTO LIMPO
-            // O innerText automaticamente converte o HTML restante em texto respeitando as quebras de linha
-            let textoLimpo = cloneDom.innerText;
+            // 2. Remoção Cirúrgica no DOM - Tachados e Estilos Inline (Resolve C3)
+            const allNodes = hiddenSandbox.querySelectorAll('*');
+            allNodes.forEach(el => {
+                const style = el.getAttribute('style') || '';
+                if (el.tagName.match(/^(STRIKE|S|DEL)$/i) || style.match(/line-through/i)) {
+                    el.remove();
+                    nodesRemovidos++;
+                }
+            });
 
-            // 4. FAXINA DE POLUIÇÃO VISUAL (Regex)
-            // Remove links textuais irrelevantes como "(Redação dada pela Medida Provisória tal)"
-            textoLimpo = textoLimpo.replace(/\((Redação dada|Incluído|Revogado|Vide).*?\)/gi, '');
-            // Remove avisos comuns do Planalto que poluem a leitura
-            textoLimpo = textoLimpo.replace(/Vigência encerrada/gi, ''); 
-            // Limpa espaços duplos excessivos gerados pelas exclusões
-            textoLimpo = textoLimpo.replace(/[ \t]{2,}/g, ' '); 
+            // 3. Poda Direcionada de Notas do Planalto (Resolve C1 e C5)
+            const noteNodes = hiddenSandbox.querySelectorAll('a, font, span');
+            noteNodes.forEach(el => {
+                const text = el.textContent.trim();
+                if (/^\((Redação dada|Incluído pel|Revogado pel|Vide|Vigência)/i.test(text)) {
+                    el.remove();
+                    nodesRemovidos++;
+                }
+            });
 
-            // 5. PARSER JSON HIERÁRQUICO
+            // 4. Extração Segura de Texto Renderizado
+            let textoLimpo = hiddenSandbox.innerText;
+            document.body.removeChild(hiddenSandbox); // Cleanup imediato para liberar memória
+
+            // 5. Faxina de Artefatos Residuais (Resolve C4)
+            textoLimpo = textoLimpo.replace(/[ \t]*[-—–]{2,}[ \t]*$/gm, ''); // Trailing leaders após remoção de nota
+            textoLimpo = textoLimpo.replace(/^[\s-—–]+$/gm, ''); // Linhas inteiramente mortas
+            textoLimpo = textoLimpo.replace(/[ \t]{2,}/g, ' '); // Espaços duplos
+            textoLimpo = textoLimpo.replace(/\n{2,}/g, '\n'); // Múltiplas quebras viram uma só
+
+            // 6. Parser Hierárquico Avançado (Resolve C6)
             const linhas = textoLimpo.split('\n');
             let jsonLeis = {};
             let artigoAtual = null;
+            
+            // Ignora cabeçalhos estruturais (Livros, Títulos, Capítulos, etc)
+            const REGEX_IGNORAR = /^(LIVRO|TÍTULO|CAPÍTULO|SEÇÃO|SUBSEÇÃO|PARTE)\s+[A-ZIVXLCDM]+/i;
 
             for(let linha of linhas) {
                 linha = linha.trim();
-                if(!linha) continue;
+                if(!linha || REGEX_IGNORAR.test(linha)) continue;
 
-                // Padrão que detecta "Art. 1", "Art. 1º", "Art. 1°", "Art. 1."
                 const ehNovoArtigo = linha.match(/^Art\.\s*([0-9]+)[º°\.]?/i);
 
                 if(ehNovoArtigo) {
-                    artigoAtual = ehNovoArtigo[1]; // Ex: "5"
+                    artigoAtual = ehNovoArtigo[1]; 
                     jsonLeis[artigoAtual] = linha;
                 } else if (artigoAtual) {
                     jsonLeis[artigoAtual] += '\n' + linha;
                 }
             }
 
-            // Finalização
+            // 7. Renderização e UI Update
+            document.getElementById('qtd-removida').textContent = nodesRemovidos;
+            document.getElementById('feedback-limpeza').classList.remove('is-hidden');
+
             jsonFinal = JSON.stringify(jsonLeis, null, 2);
-            document.getElementById('resultado').innerText = jsonFinal;
+            document.getElementById('resultado').textContent = jsonFinal;
             
-            document.getElementById('area-download').style.display = 'block';
+            // Mantido com block para não quebrar o título <p> da área de download
+            document.getElementById('area-download').style.display = 'block'; 
             document.getElementById('nome-arquivo').focus();
         }
 
